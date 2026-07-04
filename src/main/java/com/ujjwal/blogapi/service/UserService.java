@@ -1,5 +1,6 @@
 package com.ujjwal.blogapi.service;
 
+import com.ujjwal.blogapi.dto.UserDTO;
 import com.ujjwal.blogapi.model.User;
 import com.ujjwal.blogapi.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,10 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-//{
-//    "username": "code_explorer",
-//    "password": "secure_pass_456"
-//}
 
 @Service
 public class UserService {
@@ -23,15 +20,17 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public User registerUser(String username, String email, String password) {
-        if(userRepo.existsByEmail(email)){
+    public User registerUser(UserDTO userDto) {
+        if(userRepo.existsByEmail(userDto.getEmail())){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email Already Exists");
         }
+
         User user = new User();
-        user.setUsername(username);
-        user.setEmail(email);
-        // Hashing the plain-text password before it hits PostgreSQL
-        user.setPassword(passwordEncoder.encode(password));
+        user.setUsername(userDto.getUsername());
+        user.setEmail(userDto.getEmail());
+
+        // Securely hashing the plain text password using BCrypt
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
 
         return userRepo.save(user);
     }

@@ -1,49 +1,49 @@
 package com.ujjwal.blogapi.controller;
 
-import com.ujjwal.blogapi.security.TokenService;
+import com.ujjwal.blogapi.dto.AuthResponse;
+import com.ujjwal.blogapi.dto.LoginRequest;
+import com.ujjwal.blogapi.security.JwtTokenProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("api/auth")
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
-    private final TokenService tokenService;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
-    // Direct constructor injection - uses the custom manager bean from SecurityConfig
-    public AuthController(AuthenticationManager authenticationManager, TokenService tokenService) {
-        this.authenticationManager = authenticationManager;
-        this.tokenService = tokenService;
-    }
+    @Autowired
+    private UserDetailsService userDetailsService;
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest) {
-        String username = loginRequest.get("username");
-        String password = loginRequest.get("password");
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
 
-        // 1. Authenticate incoming raw credentials against our database records
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password)
+    @PostMapping("login")
+    public ResponseEntity<AuthResponse> loginUser(@RequestBody LoginRequest loginRequest) {
+
+        // 1. Authenticate using the email address string context instead
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getEmail(), // 🌟 Updated
+                        loginRequest.getPassword()
+                )
         );
 
-        // 2. Pass the authenticated object to tokenService to mint our RSA-signed JWT
-        String token = tokenService.generateToken(authentication);
+        // 2. Load user details context via email string lookup
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail()); // 🌟 Updated
 
-        // 3. Return the token inside a clean JSON object wrapper
-        return ResponseEntity.ok(Map.of("token", token));
+        // 3. Generate token string payload
+        final String token = jwtTokenProvider.generateToken(userDetails);
+
+        return ResponseEntity.ok(new AuthResponse(token));
     }
 }
