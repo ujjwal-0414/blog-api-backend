@@ -45,7 +45,7 @@ A highly scalable, secure, and production-ready RESTful API backend for a Bloggi
 | `PUT` | `/api/posts/update/{id}` | Protected | Modify title (regenerates slug), body, or category mappings |
 | `DELETE` | `/api/posts/delete/{id}` | Protected | Remove a blog post from the system database |
 
-###  Categories & 💬 Comments
+###  Categories & Comments
 | Method | Endpoint | Access | Description |
 | :--- | :--- | :--- | :--- |
 | `POST` | `/api/categories/createCategory` | Protected | Instantiate a unique blog category tag |
@@ -68,6 +68,8 @@ src/main/java/com/ujjwal/blogapi/
 ├── repository/      # Data Access Layers (Automated JPA Query Generation)
 └── security/        # CustomUserDetailsService, JwtTokenProvider, JwtAuthenticationFilter
 ```
+
+<img width="812" height="758" alt="Screenshot 2026-07-04 154928" src="https://github.com/user-attachments/assets/94e55a17-6559-4183-be64-942e6ee0f514" />
 
 ##  Local Setup & Installation
 
